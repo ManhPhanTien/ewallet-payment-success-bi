@@ -6,7 +6,7 @@
 
 ## 1. Objective
 
-### 📖 What is this project about?
+### What is this project about?
 
 This project analyzes why the **bill payment success rate** of an **E-Wallet** app dropped after **July 28, 2023**, and what the team should fix first. It uses a simulated dataset from **Jul 1 to Aug 31, 2023** (32,122 transactions, 49,675 sessions, 435,658 app events and 1,500 users). The analysis focuses on:
 
@@ -14,7 +14,7 @@ This project analyzes why the **bill payment success rate** of an **E-Wallet** a
 - **Root Cause Analysis**: Breaking the drop down by transaction type, bill type, user group, app version, error type and app release to find what changed.
 - **Recovery Plan**: Turning the findings into clear actions that bring the success rate back and catch the next drop earlier.
 
-### 👤 Who is this project for?
+### Who is this project for?
 
 This analysis is designed for the teams that own the bill payment flow of the E-Wallet app, including:
 
@@ -23,7 +23,7 @@ This analysis is designed for the teams that own the bill payment flow of the E-
 - **UX & Customer Support Team**: To know what users see when a payment fails and how to help them pay again.
 - **Board of Directors (BOD)**: To get a short, clear view of how big the problem is and the recovery plan.
 
-### ❓ Business Questions
+### Business Questions
 
 - How much did the bill payment success rate drop, and when did it start?
 - Did the drop hit all transaction types, or mainly bill payments?
@@ -32,7 +32,7 @@ This analysis is designed for the teams that own the bill payment flow of the E-
 - Is the drop linked to an app release or a system change?
 - What should the team fix first, and how can it catch a similar drop earlier?
 
-### 🎯 Project Outcome
+### Project Outcome
 
 The project found where and why bill payments started to fail, and turned the findings into a recovery plan with five actions.
 
