@@ -1,101 +1,103 @@
-# E-Wallet Payment Success Rate Drop — Root Cause Analysis
+# E-Wallet Bill Payment Success Rate Analysis
 
-A Power BI product analytics project investigating a sudden, sustained drop in bill payment success rate on an e-wallet app starting **July 28, 2023**. The analysis applies the **MECE framework** across transactional, session, event-log, and error data to isolate the failure point in the payment journey — narrowing down from "which segment is failing" to "which exact authentication mechanism is failing, and why."
-
----
-
-## 🎯 Business Background
-
-Beginning in late July 2023, the product team noticed the app's overall transaction success rate had degraded and was not recovering on its own. Multiple bug-fix releases were shipped, but the metric stayed suppressed. This project answers three questions in sequence:
-
-1. **When** did the drop start, and was it a gradual decline or a step-change?
-2. **Where** in the product is it concentrated — a segment, a platform, an app version, a payment method?
-3. **Why** is it happening — what is the actual technical failure mechanism, and what fixed it partially vs. not at all?
-
-The investigation covers **July 1 – August 31, 2023**, spanning **32K transactions**.
+**Why did bill payments suddenly start failing on July 28, 2023, and what should the team fix first?**
 
 ---
 
-## 🗂️ Data & Structure
-![Model](assets/Model.png)
+## 1. Objective
 
+### 📖 What is this project about?
 
----
+This project analyzes why the **bill payment success rate** of an **E-Wallet** app dropped after **July 28, 2023**, and what the team should fix first. It uses a simulated dataset from **Jul 1 to Aug 31, 2023** (32,122 transactions, 49,675 sessions, 435,658 app events and 1,500 users). The analysis focuses on:
 
-## 📄 Dashboard Pages
+- **Success Rate Monitoring**: Comparing the success rate before (Jul 1–27) and after (Jul 28–Aug 31) to see when the drop started and how big it is.
+- **Root Cause Analysis**: Breaking the drop down by transaction type, bill type, user group, app version, error type and app release to find what changed.
+- **Recovery Plan**: Turning the findings into clear actions that bring the success rate back and catch the next drop earlier.
 
-### 1️⃣ Overview
-![Overview Dashboard](assets/01-overview-dashboard.png)
+### 👤 Who is this project for?
 
-Headline KPIs, the success-rate-vs-transaction-volume trend that first surfaces the July 28 break, revenue and failure composition by transaction type, and a daily breakdown table.
+This analysis is designed for the teams that own the bill payment flow of the E-Wallet app, including:
 
-### 2️⃣ User
-![User Dashboard](assets/02-user-dashboard.png)
+- **Product Manager**: To understand where users fail to pay bills and decide what to fix first.
+- **Engineering Team**: To see which release, payment step and error types are behind the failures.
+- **UX & Customer Support Team**: To know what users see when a payment fails and how to help them pay again.
+- **Board of Directors (BOD)**: To get a short, clear view of how big the problem is and the recovery plan.
 
-User base segmented by app version, platform, and loyalty tier, with transaction success rate and revenue cut by loyalty tier to test whether the drop is concentrated in any one user group.
+### ❓ Business Questions
 
-### 3️⃣ Tech
-![Tech Dashboard](assets/03-tech-dashboard.png)
+- How much did the bill payment success rate drop, and when did it start?
+- Did the drop hit all transaction types, or mainly bill payments?
+- Which bill types, user groups, devices or app versions were affected?
+- At which step of the payment flow do bills fail, and which errors grew the most?
+- Is the drop linked to an app release or a system change?
+- What should the team fix first, and how can it catch a similar drop earlier?
 
-The diagnostic core of the project: failure trend by date, success rate by app_version, and two drill-downs — failure by `error_category_l2` and by `error_reason` — that pinpoint the exact technical mechanism behind the drop.
+### 🎯 Project Outcome
 
-### 📑 Supporting Report
-[`Payment_Success_Rate_Drop_Analysis.pdf`](assets/Payment_Success_Rate_Drop_Analysis.pdf) — the full root-cause write-up referenced throughout this README, including the version-by-version timeout table and final recommendations.
+The project found where and why bill payments started to fail, and turned the findings into a recovery plan with five actions.
 
----
+**Key Results:**
 
-## 🔍 Key Insights
+- Found the break point: the bill payment success rate fell from **89.9% to 72.7%** on **July 28, 2023**, the same day as app release v3.9.6, and three later releases did not bring it back.
+- Showed that the problem sits in the bill payment flow, not in one user group: every bill type, platform, payment method and user group fell by about the same amount, while transfers, deposits and withdrawals did not change.
+- Found the main cause: authentication errors explain about **three quarters** of the drop, mostly at the security check step (**3DS time-outs and expired OTP codes**). Users who did not update the app failed too, so the change was most likely on the server side.
+- Measured the hidden damage: about **701 extra bill payments failed** in 5 weeks (worth about **$166K**), only **11%** of failed bills showed a clear failure screen, and only **4%** were paid again within 7 days.
+- Proposed five actions: roll back the July 28 changes and re-launch them step by step, extend the OTP/3DS time limits, add safe auto-retry for gateway time-outs, show a clear failure screen with a 1-tap retry, and add a real-time success rate alert.
 
-### 1. The drop is a step-change on July 28, not a gradual decline
-The Overview trend line is flat and stable through late July — **92–93% success rate on July 26–27** — then breaks sharply: success rate falls straight to **~82% on July 28** and never returns to its prior benchmark for the remainder of the observation window. Interestingly, transaction *volume* moves in the opposite direction, jumping higher right as success rate collapses — ruling out a simple "demand overload" explanation, since the system was handling more, not less, traffic when it started failing more often.
+**Outcome:**
 
-**Why this matters:** a step-change points to a specific triggering event (a release, a config change, a partner-side migration) rather than organic degradation, which is exactly the lead the Tech page investigates next.
-
-### 2. The failure is concentrated in Payment → Billing, the company's highest-revenue segment
-On the Overview page, **Payment is both the dominant transaction type (48.4% of all transactions) and by far the largest revenue driver** — its revenue bar dwarfs Transfer, Deposit, and Withdrawal combined. The PDF report's category-level gap analysis confirms the drop is not evenly spread: **Billing shows the steepest success-rate decline of any category (-14.5 percentage points between July and August)**, well ahead of Traveling, Movies, or Telco. Within Billing specifically, **Electricity, Internet, and Insurance sub-categories** show the largest declines.
-
-**Why this matters:** the failure hit the segment with the most to lose financially, which is why this became a P1 investigation rather than a minor metric dip.
-
-### 3. User segmentation is a dead end — this is not a "who" problem
-The User page and the PDF's segmentation analysis systematically rule out every user-side hypothesis:
-- **Age group**: decline is uniform (-14.2% to -15.2%) across all four age bands — no group is protected
-- **Loyalty tier**: new users (Bronze, -14.6%) and top-tier users (Platinum, -16.7%) fail at similarly severe rates — rules out an onboarding/new-user-specific bug
-- **Network connection**: Excellent connections (-14.8%) fail almost as often as Poor connections (-15.0%) — rules out an ISP/carrier issue
-- **Payment method**: failure rates sit in a tight 17–28% band across Credit Card, Debit Card, Linked Bank, and Wallet Balance — no single method is the bottleneck
-
-This is a valuable negative result: it closes off four plausible root causes in one pass and redirects the entire investigation toward the application/backend layer.
-
-### 4. 57.7% of Billing failures trace to one mechanism: authentication timeouts
-This is the central finding of the project. Drilling into `error_category_l2` for the Billing segment, **AUTHENTICATION_ISSUES accounts for 736 failures — 57.7% of all Billing failures**, more than the next twelve categories combined. The `error_reason` breakdown decomposes this further into a specific "destructive trio":
-- **`3ds_timeout` — 60.2%** of authentication failures
-- **`otp_expired` — 19.6%**
-- **`invalid_otp` — 12.4%**
-
-Together these three reasons account for **over 90% of all authentication failures**, and by extension, roughly half of all Billing failures overall. The system's own error tagging labels 63.5% of failures as "user factors" — but the L2 drill-down shows this is misleading; the real driver is a technical timeout mechanism, not user behavior.
-
-### 5. The version history tells a story of chasing the wrong fix
-This is the most technically interesting insight, and it comes directly from the app_version timeline in the PDF and is visually corroborated by the Tech page's success-rate-by-app_version chart:
-
-| Version | Release | 3ds_timeout rate |
-|---|---|---|
-| 3.9.0 – 3.9.5 | before July 28 | 0.93% |
-| **3.9.6** | **July 28** | **2.77%** ⬆️ (the trigger) |
-| 3.9.7 | Aug 5 | 1.58% (partial fix) |
-| 3.9.8 | Aug 15 | 1.06% (further improvement) |
-| 3.9.9 | Aug 22 (emergency) | **2.00%** ⬆️ (regression) |
-
-Version **3.9.6 is the release that introduced the problem** — it shipped a "decreased memory usage" change that, per the PDF, most likely causes the app to be terminated by the OS in the background while a user is out of the app retrieving their OTP, breaking the authentication session. Versions 3.9.7–3.9.8 progressively relaxed frontend timeouts and clawed back much of the loss. But the **3.9.9 emergency patch went in the wrong direction**: it shortened backend/gateway timeouts without extending the frontend OTP timeout to match, causing `3ds_timeout` to spike back up. The team fixed a client-side memory issue with a server-side timeout change — a mismatch between where the problem lives and where the fix was applied.
-
-### 6. New user acquisition nearly stalled during the incident window
-A smaller but notable signal on the Overview page: only **13 new users** were acquired across the entire two-month window, against a retention rate of 99.87%. Retention staying high suggests existing users are not abandoning the app outright, but near-zero new user growth during a period of visible payment failures is a reasonable flag for the growth/marketing team to cross-check against acquisition spend for the same period.
+The project gives the product and engineering teams a clear answer to what broke and where to start, with a plan to bring the bill payment success rate back to its 89.9% baseline.
 
 ---
 
-## 💡 Recommendations
-*(from the supporting PDF report)*
+## 2. Design Thinking Process
 
-1. **Memory reconfiguration** — Roll back or fine-tune the "decreased memory usage" change shipped in v3.9.6; allocate sufficient RAM to the payment/authentication flow specifically so it isn't the first thing the OS kills in the background.
-2. **Session recovery / state preservation** — When the app is reloaded after a user switches away to retrieve an OTP, restore the in-progress payment state instead of forcing a restart that runs into the session timeout.
-3. **Frontend-backend timeout synchronization** — Any future timeout change (like v3.9.9's backend adjustment) must be sized against the full frontend OTP/3DS session lifespan, not tuned in isolation. The v3.9.9 regression happened specifically because these two were adjusted independently.
+Before looking at the data, the problem **"Billing success rate dropped"** was broken down with **5W1H** (What, When, Where, Who, Why, How). Each branch lists the questions to answer and the dimensions to check.
 
+### What — what changed?
 
+![5W1H logic tree: What](images/logic_tree_what.png)
+
+### When — when did it start?
+
+![5W1H logic tree: When](images/logic_tree_when.png)
+
+### Where — where does it happen?
+
+![5W1H logic tree: Where](images/logic_tree_where.png)
+
+### Who — who is affected?
+
+![5W1H logic tree: Who](images/logic_tree_who.png)
+
+### Why — why did it happen?
+
+![5W1H logic tree: Why](images/logic_tree_why.png)
+
+### How — how to find the answer?
+
+![5W1H logic tree: How](images/logic_tree_how.png)
+
+---
+
+## 3. Insights & Recommendations
+
+![Slide 1: Bill Payment Success Rate Drop Analysis](images/slide_01.png)
+
+![Slide 2: Success rate fell from 92.1% to 87.3% after July 28](images/slide_02.png)
+
+![Slide 3: Payments drove the drop, and Billing fell the most](images/slide_03.png)
+
+![Slide 4: Billing success rate broke on July 28 and never came back](images/slide_04.png)
+
+![Slide 5: Every bill type and every user group fell by about the same amount](images/slide_05.png)
+
+![Slide 6: Users who did not update the app failed too, so the change was likely server-side](images/slide_06.png)
+
+![Slide 7: Authentication errors explain about three quarters of the drop](images/slide_07.png)
+
+![Slide 8: Auth errors peaked with 3.9.6, system errors with API v3.0; no release fixed them](images/slide_08.png)
+
+![Slide 9: Most failed bills are lost, and users rarely see a clear failure screen](images/slide_09.png)
+
+![Slide 10: Fix the bill payment authentication step first](images/slide_10.png)
