@@ -97,6 +97,5 @@ Before looking at the data, the problem **"Billing success rate dropped"** was b
 
 ![Slide 8: Auth errors peaked with 3.9.6, system errors with API v3.0; no release fixed them](images/slide_08.png)
 
-![Slide 9: Most failed bills are lost, and users rarely see a clear failure screen](images/slide_09.png)
 
 ![Slide 10: Fix the bill payment authentication step first](images/slide_10.png)
