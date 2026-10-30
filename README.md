@@ -41,7 +41,6 @@ The project found where and why bill payments started to fail, and turned the fi
 - Found the break point: the bill payment success rate fell from **89.9% to 72.7%** on **July 28, 2023**, the same day as app release v3.9.6, and three later releases did not bring it back.
 - Showed that the problem sits in the bill payment flow, not in one user group: every bill type, platform, payment method and user group fell by about the same amount, while transfers, deposits and withdrawals did not change.
 - Found the main cause: authentication errors explain about **three quarters** of the drop, mostly at the security check step (**3DS time-outs and expired OTP codes**). Users who did not update the app failed too, so the change was most likely on the server side.
-- Measured the hidden damage: about **701 extra bill payments failed** in 5 weeks (worth about **$166K**), only **11%** of failed bills showed a clear failure screen, and only **4%** were paid again within 7 days.
 - Proposed five actions: roll back the July 28 changes and re-launch them step by step, extend the OTP/3DS time limits, add safe auto-retry for gateway time-outs, show a clear failure screen with a 1-tap retry, and add a real-time success rate alert.
 
 **Outcome:**
