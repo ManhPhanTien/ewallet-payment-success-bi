@@ -97,5 +97,8 @@ Before looking at the data, the problem **"Billing success rate dropped"** was b
 
 ![Slide 8: Auth errors peaked with 3.9.6, system errors with API v3.0; no release fixed them](images/slide_08.png)
 
+![Slide 9: A bill session lasts about a minute](images/slide_09.png)
 
-![Slide 9: Fix the bill payment authentication step first](images/slide_9.png)
+![Slide 10: Two thirds of the rise passed verification and still failed](images/slide_10.png)
+
+![Slide 11: Fix the bill payment authentication step first](images/slide_11.png)
